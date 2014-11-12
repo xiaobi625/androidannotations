@@ -140,6 +140,15 @@ public class AndroidManifestFinder {
 		return Option.of(androidManifestFile);
 	}
 
+	/**
+	 * 解析android manifest 文件
+	 *
+	 * @param androidManifestFile
+	 *            文件路径
+	 * @param libraryProject
+	 *            是否为lib project
+	 * @return
+	 */
 	private Option<AndroidManifest> parse(File androidManifestFile, boolean libraryProject) {
 		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 

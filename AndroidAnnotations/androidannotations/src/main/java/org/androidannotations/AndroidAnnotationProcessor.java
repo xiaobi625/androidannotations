@@ -23,9 +23,9 @@ import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -160,8 +160,10 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 			return;
 		}
 
+		// 获取所有处理的annotaion的元素
 		AnnotationElementsHolder extractedModel = extractAnnotations(annotations, roundEnv);
 
+		// 获取manifest
 		Option<AndroidManifest> androidManifestOption = extractAndroidManifest();
 		if (androidManifestOption.isAbsent()) {
 			return;
@@ -169,19 +171,19 @@ public class AndroidAnnotationProcessor extends AbstractProcessor {
 		AndroidManifest androidManifest = androidManifestOption.get();
 
 		LOGGER.info("AndroidManifest.xml found: {}", androidManifest);
-
+		// 获取r clas
 		Option<IRClass> rClassOption = findRClasses(androidManifest);
 		if (rClassOption.isAbsent()) {
 			return;
 		}
 		IRClass rClass = rClassOption.get();
-
+		// android 原生service
 		AndroidSystemServices androidSystemServices = new AndroidSystemServices();
 
 		annotationHandlers.setAndroidEnvironment(rClass, androidSystemServices, androidManifest);
-
+		// 编译校验annotaion合法性
 		AnnotationElements validatedModel = validateAnnotations(extractedModel);
-
+		// 处理annotation
 		ModelProcessor.ProcessResult processResult = processAnnotations(validatedModel);
 
 		generateSources(processResult);

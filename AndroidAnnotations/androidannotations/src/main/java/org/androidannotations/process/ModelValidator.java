@@ -47,7 +47,7 @@ public class ModelValidator {
 		 * unique ids might not be check all situations.
 		 */
 		AnnotationElementsHolder validatedElements = extractedModel.validatingHolder();
-
+		// 只校验root element
 		for (AnnotationHandler<?> annotationHandler : annotationHandlers.get()) {
 			String validatorSimpleName = annotationHandler.getClass().getSimpleName();
 			String annotationName = annotationHandler.getTarget();
@@ -64,6 +64,7 @@ public class ModelValidator {
 
 			for (Element annotatedElement : annotatedElements) {
 				if (validateThrowing(annotationHandler, annotatedElement, validatedElements)) {
+					// 校验通过
 					validatedAnnotatedElements.add(annotatedElement);
 				} else {
 					LOGGER.warn("Element {} unvalidated by {}", annotatedElement, validatorSimpleName);

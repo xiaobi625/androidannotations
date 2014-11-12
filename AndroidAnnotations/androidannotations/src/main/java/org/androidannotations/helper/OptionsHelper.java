@@ -23,6 +23,12 @@ import javax.annotation.processing.ProcessingEnvironment;
 
 import org.androidannotations.logger.Level;
 
+/**
+ * 编译参数工具类
+ * 
+ * @author bokui
+ *
+ */
 public class OptionsHelper {
 
 	enum Option {

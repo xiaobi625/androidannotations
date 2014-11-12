@@ -28,6 +28,9 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
+import org.androidannotations.AndroidAnnotationProcessor;
+import org.androidannotations.logger.LoggerFactory;
+
 public class ModelExtractor {
 
 	/**
@@ -39,11 +42,11 @@ public class ModelExtractor {
 		AnnotationElementsHolder extractedModel = new AnnotationElementsHolder();
 
 		Set<? extends Element> rootElements = roundEnv.getRootElements();
-
 		Set<TypeElement> rootTypeElements = findRootTypeElements(rootElements);
 
+		// 获取root元素的祖先元素的所有annotation元素
 		extractAncestorsAnnotations(extractedModel, annotationTypesToCheck, rootTypeElements);
-
+		// 获取root元素的所有annotation元素
 		extractRootElementsAnnotations(annotations, roundEnv, extractedModel);
 
 		return extractedModel;
@@ -69,15 +72,24 @@ public class ModelExtractor {
 		return rootTypeElements;
 	}
 
+	/**
+	 * 获取root element的祖先元素，及祖先元素内部的元素的annotation
+	 *
+	 * @param extractedModel
+	 * @param annotationTypesToCheck
+	 * @param rootTypeElements
+	 */
 	private void extractAncestorsAnnotations(AnnotationElementsHolder extractedModel, Set<String> annotationTypesToCheck, Set<TypeElement> rootTypeElements) {
 		for (TypeElement rootTypeElement : rootTypeElements) {
 			Set<TypeElement> ancestors = new HashSet<TypeElement>();
+			// 获取祖先元素——迭代获取父类元素
 			addAncestorsElements(ancestors, rootTypeElement);
 			if (!ancestors.isEmpty()) {
-
 				for (TypeElement ancestor : ancestors) {
+					// 获取祖先元素的annotation
 					extractAnnotations(extractedModel, annotationTypesToCheck, rootTypeElement, ancestor);
 
+					// 获取祖先的内部元素的annotation
 					for (Element ancestorEnclosedElement : ancestor.getEnclosedElements()) {
 						ElementKind enclosedKind = ancestorEnclosedElement.getKind();
 						if (enclosedKind == ElementKind.FIELD || enclosedKind == ElementKind.METHOD) {
@@ -89,6 +101,16 @@ public class ModelExtractor {
 		}
 	}
 
+	/**
+	 * 获取带可处理annotation的元素
+	 *
+	 * @param extractedModel
+	 * @param annotationTypesToCheck
+	 *            可处理的annotation
+	 * @param rootTypeElement
+	 *            root element
+	 * @param ancestorEnclosedElement
+	 */
 	private void extractAnnotations(AnnotationElementsHolder extractedModel, Set<String> annotationTypesToCheck, TypeElement rootTypeElement, Element ancestorEnclosedElement) {
 		List<? extends AnnotationMirror> ancestorEnclosedElementAnnotations = ancestorEnclosedElement.getAnnotationMirrors();
 		for (AnnotationMirror annotationMirror : ancestorEnclosedElementAnnotations) {
@@ -98,10 +120,10 @@ public class ModelExtractor {
 
 				/*
 				 * rootTypeElement is one of the types that are being compiled
-				 * 
+				 *
 				 * ancestorEnclosedElement is the annotated element in an
 				 * ancestor of rootTypeElement
-				 * 
+				 *
 				 * annotation is a type representing the annotation on
 				 * ancestorEnclosedElement
 				 */
@@ -116,7 +138,6 @@ public class ModelExtractor {
 	 */
 	private void addAncestorsElements(Set<TypeElement> elements, TypeElement typeElement) {
 		TypeMirror ancestorTypeMirror = typeElement.getSuperclass();
-
 		if (!isRootObjectClass(ancestorTypeMirror) && ancestorTypeMirror instanceof DeclaredType) {
 			DeclaredType ancestorDeclaredType = (DeclaredType) ancestorTypeMirror;
 			Element ancestorElement = ancestorDeclaredType.asElement();
@@ -131,6 +152,16 @@ public class ModelExtractor {
 		return typeMirror.getKind() == TypeKind.NONE;
 	}
 
+	/**
+	 * 获取root元素及内部元素的annotaion
+	 *
+	 * @param annotations
+	 *            处理的annotaitons
+	 * @param roundEnv
+	 *            RoundEnvironment 上下文
+	 * @param extractedModel
+	 *            存储
+	 */
 	private void extractRootElementsAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, AnnotationElementsHolder extractedModel) {
 		for (TypeElement annotation : annotations) {
 			extractedModel.putRootAnnotatedElements(annotation.getQualifiedName().toString(), roundEnv.getElementsAnnotatedWith(annotation));

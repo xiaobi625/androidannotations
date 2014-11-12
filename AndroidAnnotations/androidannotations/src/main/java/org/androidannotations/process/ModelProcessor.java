@@ -15,7 +15,15 @@
  */
 package org.androidannotations.process;
 
-import com.sun.codemodel.JCodeModel;
+import java.util.Set;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.TypeElement;
+
 import org.androidannotations.exception.ProcessingException;
 import org.androidannotations.handler.AnnotationHandler;
 import org.androidannotations.handler.AnnotationHandlers;
@@ -26,10 +34,7 @@ import org.androidannotations.logger.LoggerFactory;
 import org.androidannotations.model.AnnotationElements;
 import org.androidannotations.model.AnnotationElements.AnnotatedAndRootElements;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
-import java.util.Set;
-
+import com.sun.codemodel.JCodeModel;
 
 public class ModelProcessor {
 
@@ -69,10 +74,12 @@ public class ModelProcessor {
 		LOGGER.info("Processing root elements");
 
 		/*
-		 * We generate top classes then inner classes, then inner classes of inner classes, etc...
-		 * until there is no more classes to generate.
+		 * We generate top classes then inner classes, then inner classes of
+		 * inner classes, etc... until there is no more classes to generate.
 		 */
-		while (generateElements(validatedModel,processHolder));
+		while (generateElements(validatedModel, processHolder)) {
+			;
+		}
 
 		LOGGER.info("Processing enclosed elements");
 
@@ -170,7 +177,7 @@ public class ModelProcessor {
 					if (processHolder.getGeneratedClassHolder(annotatedElement) == null) {
 						TypeElement typeElement = (TypeElement) annotatedElement;
 						Element enclosingElement = annotatedElement.getEnclosingElement();
-
+						// 内部类处理
 						if (typeElement.getNestingKind() == NestingKind.MEMBER && processHolder.getGeneratedClassHolder(enclosingElement) == null) {
 							isElementRemaining = true;
 						} else {
@@ -179,7 +186,7 @@ public class ModelProcessor {
 							generatingAnnotationHandler.process(annotatedElement, generatedClassHolder);
 						}
 					}
-				}  else {
+				} else {
 					LOGGER.trace("Skip element {} because it's abstract", annotatedElement);
 				}
 			}
